@@ -89,17 +89,85 @@ SELECT type, Product.model, Laptop.speed
 FROM Product,PC,Laptop
 WHERE Laptop.speed < ALL (SELECT speed FROM PC) and type = 'Laptop'
 GROUP BY type,Product.model,Laptop.speed
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
+/*18 Найдите производителей самых дешевых цветных принтеров. Вывести: maker, price*/
+SELECT maker, MIN(price)
+FROM Product INNER JOIN
+Printer ON Printer.model = Product.model
+WHERE 
+price = (SELECT MIN(price) FROM Printer WHERE color = 'y') 
+and color = 'y'
+GROUP BY maker
+/*19 Для каждого производителя, имеющего модели в таблице Laptop, найдите средний размер экрана выпускаемых им ПК-блокнотов.
+Вывести: maker, средний размер экрана.*/
+SELECT maker, AVG(screen) as Avg_screen
+FROM Product INNER JOIN
+Laptop ON Product.model = Laptop.model
+GROUP BY maker
+/*20 Найдите производителей, выпускающих по меньшей мере три различных модели ПК. Вывести: Maker, число моделей ПК.*/
+SELECT maker, COUNT(model) as Cpunt_Model
+FROM Product
+WHERE type = 'PC'
+GROUP BY maker
+HAVING COUNT(model)>=3
+/*21 Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.
+Вывести: maker, максимальная цена.*/
+SELECT maker, MAX(price) as Max_price
+FROM Product INNER JOIN
+PC ON Product.model = PC.model
+GROUP BY Maker
+/*22 Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью. Вывести: speed, средняя цена.*/
+SELECT speed, AVG(price) as AVG_price
+FROM PC
+WHERE speed > 600
+GROUP BY speed
+/*23 Найдите производителей, которые производили бы как ПК
+со скоростью не менее 750 МГц, так и ПК-блокноты со скоростью не менее 750 МГц.
+Вывести: Maker*/
+SELECT maker
+FROM Product INNER JOIN
+PC ON Product.model = PC.model
+WHERE speed>=750
+INTERSECT
+SELECT maker
+FROM Product INNER JOIN
+Laptop ON Product.model = Laptop.model
+WHERE speed>=750
+/*24 Перечислите номера моделей любых типов, имеющих самую высокую цену по всей имеющейся в базе данных продукции.*/
+WITH models AS (
+SELECT model,price
+FROM PC
+UNION
+SELECT model,price
+FROM Laptop
+UNION
+SELECT model,price
+FROM Printer)
+
+SELECT model
+FROM models
+WHERE price = (SELECT MAX(price) FROM models)
+/*25 Найдите производителей принтеров, которые производят ПК с наименьшим объемом RAM и с самым быстрым процессором среди всех ПК, имеющих наименьший объем RAM. Вывести: Maker*/
+
+/*26 Найдите среднюю цену ПК и ПК-блокнотов, выпущенных производителем A (латинская буква). Вывести: одна общая средняя цена.*/
+SELECT AVG(buff.price) as AVG_price
+FROM
+(SELECT price
+FROM PC INNER JOIN Product p ON PC.model = p.model
+WHERE maker = 'A'
+UNION ALL
+SELECT price
+FROM Laptop INNER JOIN Product p ON Laptop.model = p.model
+WHERE maker = 'A') as buff
+/*27 Найдите средний размер диска ПК каждого из тех производителей, которые выпускают и принтеры. Вывести: maker, средний размер HD.*/
+SELECT Maker, AVG(hd) as AVG_hd
+FROM Product p INNER JOIN PC ON p.model=pc.model
+WHERE maker IN (SELECT maker FROM Product WHERE type = 'Printer')
+GROUP BY Maker
+/*28 Используя таблицу Product, определить количество производителей, выпускающих по одной модели.*/
+SELECT COUNT(buff.counter) as cnt FROM (SELECT COUNT(maker) as counter
+FROM Product
+GROUP BY Maker
+HAVING COUNT(model) = 1) AS buff
 /**/
 /**/
 /**/
